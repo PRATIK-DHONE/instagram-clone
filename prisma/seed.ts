@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { hash } from "bcryptjs";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -11,7 +12,11 @@ if (!connectionString) {
 
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
-
+const passwordHash = await hash(
+  process.env.SEED_USER_PASSWORD ??
+    "LocalTestPassword123!",
+  12
+);
 async function main() {
   const user = await prisma.user.upsert({
     where: { email: "demo@example.com" },
@@ -21,6 +26,7 @@ async function main() {
       email: "demo@example.com",
       name: "Demo User",
       bio: "My first Instagram clone account",
+      passwordHash,
     },
   });
 
